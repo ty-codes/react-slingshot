@@ -10,17 +10,53 @@ jobs:
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
       - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
       - run:
           name: "Say hello"
           command: "echo Hello, World!"
+  build:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run: 
+          name: "install dependencies"
+          command: npm i
+      - run: 
+          name: "build artifact"
+          command: npm run lint
+
+  test:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run: 
+          name: "install dependencies"
+          command: npm i
+      - run: 
+          name: "test artifact"
+          command: npm run test
+  analyze:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run: 
+          name: "analyze  artifact"
+          command: npm audit
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  my-workflow:
     jobs:
       - say-hello
+      - build
+      - test:
+          requires:
+            - build
+      - analyze:
+          requires:
+            - test
